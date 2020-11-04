@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 import {app} from "./app";
 
 const start = async () => {
-    process.env.JWT_KEY="jwt_key"
-    process.env.MONGO_URI="mongodb+srv://db_user:safe_password@cluster0.orcnk.mongodb.net/track-board?retryWrites=true&w=majority"
+    process.env.JWT_KEY = "jwt_key"
+    process.env.MONGO_URI = "mongodb+srv://db_user:safe_password@cluster0.orcnk.mongodb.net/track-board?retryWrites=true&w=majority"
 
     // Generate JWT
     if (!process.env.JWT_KEY) {
@@ -22,9 +22,8 @@ const start = async () => {
     } catch (err) {
         console.error(err);
     }
-
-    app.listen(8080, () => {
-        console.log('Listening on port 3000!!!!!!!!');
+    app.listen(process.env.PORT || 8080, () => {
+        console.log('Listening on port ' + process.env.PORT || 8080);
     });
 };
 
