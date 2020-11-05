@@ -1,9 +1,9 @@
-import express, { Request, Response } from 'express';
-import { body } from "express-validator";
-import { RequestValidationError, validateRequest } from "../../common";
-import { Schedule } from "../../models/schedule";
-import { AlreadyBlocked } from "../../common/errors/already-blocked";
-import { User } from '../../models/user';
+import express, {Request, Response} from 'express';
+import {body} from "express-validator";
+import {RequestValidationError, validateRequest} from "../../common";
+import {Schedule} from "../../models/schedule";
+import {AlreadyBlocked} from "../../common/errors/already-blocked";
+import {User} from '../../models/user';
 
 const router = express.Router();
 
@@ -17,9 +17,17 @@ router.post(
     ],
     validateRequest,
     async (req: Request, res: Response) => {
-        const { executive_id, retailer_name, in_time, out_time } = req.body;
+        const {executive_id, retailer_name, in_time, out_time} = req.body;
         const inTime: Date = new Date(in_time);
         const outTime: Date = new Date(out_time);
+        if (inTime.valueOf() - outTime.valueOf() == 1) {
+            throw new RequestValidationError([{
+                msg: "Slot too tiny",
+                location: "body",
+                param: "in_time,out_time",
+                value: ""
+            }])
+        }
         if (
             inTime.getDay() != outTime.getDay() ||
             inTime.getMonth() != outTime.getMonth() ||
@@ -34,12 +42,11 @@ router.post(
         }
         if (await Schedule.count({
             "retailer_name": retailer_name,
-            "in_time": { $gte: in_time },
-            "out_time": { $gte: out_time }
+            "in_time": {$lte: in_time},
+            "out_time": {$gte: out_time}
         }) > 0) {
             throw new AlreadyBlocked("retailer visit is already planned");
         }
-        const apple = await User.findOne({ userId: executive_id });
 
         const schedule = Schedule.build({
             executive_id, retailer_name, in_time, out_time
@@ -48,4 +55,4 @@ router.post(
         res.status(201).send(schedule)
     });
 
-export { router as createScheduleRouter };
+export {router as createScheduleRouter};
